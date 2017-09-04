@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+definition (piruzation);
 /* --- Pilha de character --- */
 typedef struct character{ 
 	char dado;
