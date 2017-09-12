@@ -23,10 +23,10 @@ typedef struct numero{
 	struct numero* prox;
 }t_numero;
 
-typedef struct pilhaint{
+typedef struct pilhaf{
 	t_numero* inicio;
 	t_numero* fim;
-}t_pilhaint;
+}t_pilhaf;
 /* -------------------------- */
 /* --------------- Funções do programa --------------- */
 t_pilhachar* cria_pilhachar() {
@@ -37,8 +37,8 @@ t_pilhachar* cria_pilhachar() {
 	return p;
 }
 
-t_pilhaint* cria_pilhaint() {
-	t_pilhaint* p = (t_pilhaint*)malloc(sizeof(t_pilhaint));
+t_pilhaf* cria_pilhaint() {
+	t_pilhaf* p = (t_pilhaf*)malloc(sizeof(t_pilhaf));
 	p->inicio = NULL;
 	p->fim = NULL;
 	printf("\n -> PILHA DE INTEIRO CRIADA !\n\n");
@@ -58,7 +58,7 @@ void empilhachar(char digito, t_pilhachar* p) {
 	p->fim = novo;
 }
 
-void empilhanum(int digito, t_pilhaint* p) {
+void empilhanum(float digito, t_pilhaf* p) {
 	t_numero* novo = (t_numero*)malloc(sizeof(t_numero));
 	novo->dado = digito;
 	novo->prox = NULL;
@@ -71,12 +71,24 @@ void empilhanum(int digito, t_pilhaint* p) {
 	p->fim = novo;
 }
 
-void mostra_pilha(t_pilhachar* p) {
+void mostra_pilhachar(t_pilhachar* p) {
 	t_character* aux = p->inicio;
 	while(aux != NULL) {						/* Percorre a lista e mostra cada elemento */
 		printf("%c", aux->dado);
 		aux = aux->prox;
 	}
+}
+
+void mostra_pilhanum(t_pilhaf* p) {
+	int count = 0;
+	t_numero* aux = p->inicio;
+	while(aux != NULL) {						/* Percorre a lista e mostra cada elemento */
+		printf("%.2f ", aux->dado);
+		aux = aux->prox;
+		count ++;
+	}
+	printf(" <- %d elementos", count);
+	printf("\n");
 }
 
 char desempilhachar(t_pilhachar* p) {
@@ -102,11 +114,11 @@ char desempilhachar(t_pilhachar* p) {
 	return removido;
 }
 
-char desempilhanum(t_pilhaint* p) {
+float desempilhanum(t_pilhaf* p) {
 	if(p->inicio == NULL) {
 		return -1; /* PILHA VAZIA */
 	}
-	int removido = p->fim->dado;
+	float removido = p->fim->dado;
 	t_numero* ultimo = p->inicio;
 	t_numero* penultimo = NULL;
 	while(ultimo->prox != NULL) { 	/* percorre pilha até encontrar o penúltimo elemento */
@@ -131,52 +143,101 @@ void esvaziachar(t_pilhachar* p) {
 	}
 }
 
-int valida(t_pilhachar* pc, t_pilhachar* pv) { /* valida a pilha dos caracteres em relação aos ()	 */
-	t_character* olho = pc->inicio;
+void insere_0(t_character* antes0, t_character* depois0) {
+	t_character* zero = (t_character*)malloc(sizeof(t_character));
+	zero->dado = '0';
+	antes0->prox = zero;
+	zero->prox = depois0;
+}
+
+int valida_oper(t_pilhachar* pi) {
+	t_character* atual = pi->inicio;
+	t_character* antes = NULL;
+	while(atual != NULL) {
+		if(atual->dado != '0' && atual->dado != '1' && atual->dado != '2' && atual->dado != '3' && atual->dado != '4' && atual->dado != '5' && atual->dado != '6' && atual->dado != '7' && atual->dado != '8' && atual->dado != '9' && atual->dado != '+' && atual->dado != '-' && atual->dado != '*' && atual->dado != '/' && atual->dado != '(' && atual->dado != ')') {
+			return 0;	
+		}
+		if(pi->inicio->dado == '*' || pi->inicio->dado == '/' || pi->inicio->dado == '+' || pi->inicio->dado == '-' || pi->fim->dado == '+' || pi->fim->dado == '-' || pi->fim->dado == '*' || pi->fim->dado == '/') {
+			return 0;
+		}
+		if(antes != NULL && ((antes->dado >= '0' && antes->dado <='9' && atual->dado == '(') || (antes->dado == ')' && atual->dado >='0' && atual->dado <= '9'))) {
+			return 0;
+		}
+		if(antes != NULL && (((antes->dado == '*' || antes->dado == '/' || antes->dado == '+' || antes->dado == '-') && atual->dado == ')') || (antes->dado == '(' && (atual->dado == '*' || atual->dado == '/'	)))) {
+			return 0;
+		}
+		if(antes != NULL && ((antes->dado == '*' && (atual->dado == '*' || atual->dado == '/')) || (antes->dado == '/' && (atual->dado == '*' || atual->dado == '/')) || (antes->dado == '+' && (atual->dado == '+' || atual->dado == '-')) || (antes->dado == '-' && (atual->dado == '+' || atual->dado == '-')))) {
+			return 0;
+		}
+		if(antes != NULL && (antes->dado == '(' && (atual->dado == '+' || atual->dado == '-'))) {
+			insere_0(antes,atual);
+		}
+		antes = atual;
+		atual = atual->prox;
+	}
+	return 1;
+}
+
+int valida_parent(t_pilhachar* pi, t_pilhachar* paux) { /* valida a pilha dos caracteres em relação aos ()	e verifica a existência de números com 2 ou mais dígitos */
+	t_character* olho = pi->inicio;
 	if(olho == NULL) return 0;
 	char c, comp;
 	while(olho != NULL) {
 		c = olho->dado;
-		if(c == '(') empilhachar(c,pv);
+		if(c == '(') empilhachar(c,paux);
 		if(c == ')') {
-			if(pv->inicio == NULL) {
-				return -1;
+			if(paux->inicio == NULL) {
+				return 0;
 			} else {
-				comp = desempilhachar(pv);
-				if(comp == c) return -1;
+				comp = desempilhachar(paux);
+				if(comp == c) return 0;
 			}
 		}
 		olho = olho->prox;
 	}
-	if(pv->inicio != NULL) {
-		return -1;
+	if(paux->inicio != NULL) {
+		return 0;
 	} else {
 		return 1; 
 	}
 }
 
-void converte(t_pilhachar* pc, t_pilhachar* pp, t_pilhachar* pv) { /* Converte da forma infixa (PILHAc) para a forma posfixa (PILHAp) */
-	t_character* olho = pc->inicio;
+int valida_digito(t_pilhachar* pi, t_pilhachar* paux) {
+	t_character* olho = pi->inicio;
+	char atual, proximo;
+	while(olho->prox != NULL) {
+		atual = olho->dado;
+		proximo = olho->prox->dado;
+		if((atual >= '0' && atual <= '9') && (proximo >= '0' && proximo <= '9')) {
+			return 0;
+		}
+		olho = olho->prox;
+	}
+	return 1;
+}
+
+void converte_1_dig(t_pilhachar* pi, t_pilhachar* pp, t_pilhachar* paux) {
+	t_character* olho = pi->inicio;
 	char c, comp;
 	while(olho != NULL) {
 		c = olho->dado;
 		if(c =='+' || c =='-' || c =='*' || c =='/') {
-			while(pv->inicio != NULL && ((pv->fim->dado == '*' && (c == '+' || c== '-')) || (pv->fim->dado == '/' && (c == '+' || c== '-')) || (pv->fim->dado == '*' && (c == '/' || c == '*')) || (pv->fim->dado == '/' && (c == '/' || c == '*')) || (pv->fim->dado == '+' && (c == '+' || c == '-')) || (pv->fim->dado == '-' && (c == '+' || c == '-')))) {
-				comp = desempilhachar(pv);
+			while(paux->inicio != NULL && ((paux->fim->dado == '*' && (c == '+' || c== '-')) || (paux->fim->dado == '/' && (c == '+' || c== '-')) || (paux->fim->dado == '*' && (c == '/' || c == '*')) || (paux->fim->dado == '/' && (c == '/' || c == '*')) || (paux->fim->dado == '+' && (c == '+' || c == '-')) || (paux->fim->dado == '-' && (c == '+' || c == '-')))) {
+				comp = desempilhachar(paux);
 				empilhachar(comp,pp);
 			}
-			empilhachar(c,pv);
+			empilhachar(c,paux);
 		} else {
 			if(c == '(' || c == ')') {
 				if(c == '(') {
-					empilhachar(c,pv);
+					empilhachar(c,paux);
 				}
 				if(c == ')') {
-					while(pv->fim->dado != '(') {
-						comp = desempilhachar(pv);
+					while(paux->fim->dado != '(') {
+						comp = desempilhachar(paux);
 						empilhachar(comp,pp);
 					}
-					desempilhachar(pv);
+					desempilhachar(paux);
 				}
 			} else {
 				empilhachar(c,pp);
@@ -184,83 +245,119 @@ void converte(t_pilhachar* pc, t_pilhachar* pp, t_pilhachar* pv) { /* Converte d
 		}
 		olho = olho->prox;
 	}
-	while(pv->fim != NULL) {
-		c = desempilhachar(pv);
+	while(paux->fim != NULL) {
+		c = desempilhachar(paux);
 		empilhachar(c,pp);
 	}
 }
 
-float calcula_posfixa(t_pilhachar* pp, t_pilhaint* pi) {
-	t_character* olho = pp->inicio;
-	char c;
-	float a,b;
+void converte_maisdig(t_pilhachar* pi, t_pilhachar* pp, t_pilhachar* paux) {
+	t_character* olho = pi->inicio;
+	char atual, proximo, comp;
 	while(olho != NULL) {
-		c = olho->dado;
-		if(c == '0'  || c == '1'  || c == '2'  || c == '3'  || c == '4'  || c == '5'  || c == '6'  || c == '7'  || c == '8'  || c == '9') {
-			if(c == '0') {
-				empilhanum(0,pi);
-			}
-			if(c == '1') {
-				empilhanum(1,pi);
-			}
-			if(c == '2') {
-				empilhanum(2,pi);
-			}
-			if(c == '3') {
-				empilhanum(3,pi);
-			}
-			if(c == '4') {
-				empilhanum(4,pi);
-			}
-			if(c == '5') {
-				empilhanum(5,pi);
-			}
-			if(c == '6') {
-				empilhanum(6,pi);
-			}
-			if(c == '7') {
-				empilhanum(7,pi);
-			}
-			if(c == '8') {
-				empilhanum(8,pi);
-			}
-			if(c == '9') {
-				empilhanum(9,pi);
-			}
+		if(olho->prox == NULL) {
+			atual = olho->dado;
 		} else {
-			if(c == '+') {
-				b = desempilhanum(pi);
-				a = desempilhanum(pi);
-				empilhanum(a+b,pi);
+			atual = olho->dado;
+			proximo = olho->prox->dado;
+		}
+		if(atual >= '0' && atual <= '9') {
+			empilhachar('{',pp);
+			empilhachar(atual,pp);
+			while(olho->prox != NULL && proximo >= '0' && proximo <= '9') {
+				olho = olho->prox;
+				atual = olho->dado;
+				if(olho->prox != NULL) proximo = olho->prox->dado;
+				empilhachar(atual,pp);
 			}
-			if(c == '-') {
-				b = desempilhanum(pi);
-				a = desempilhanum(pi);
-				empilhanum(a-b,pi);
+			empilhachar('}',pp);
+		} else {
+			if(atual =='+' || atual =='-' || atual =='*' || atual =='/') {
+			while(paux->inicio != NULL && ((paux->fim->dado == '*' && (atual == '+' || atual== '-')) || (paux->fim->dado == '/' && (atual == '+' || atual== '-')) || (paux->fim->dado == '*' && (atual == '/' || atual == '*')) || (paux->fim->dado == '/' && (atual == '/' || atual == '*')) || (paux->fim->dado == '+' && (atual == '+' || atual == '-')) || (paux->fim->dado == '-' && (atual == '+' || atual == '-')))) {
+				comp = desempilhachar(paux);
+				empilhachar(comp,pp);
 			}
-			if(c == '/') {
-				b = desempilhanum(pi);
-				a = desempilhanum(pi);
-				empilhanum(a/b,pi);
-			}
-			if(c == '*') {
-				b = desempilhanum(pi);
-				a = desempilhanum(pi);
-				empilhanum(a*b,pi);
+			empilhachar(atual,paux);
+			} else {
+				if(atual == '(') {
+					empilhachar(atual,paux);
+				}
+				if(atual == ')') {
+					while(paux->fim->dado != '(') {
+						comp = desempilhachar(paux);
+						empilhachar(comp,pp);
+					}
+					desempilhachar(paux);
+				}
 			}
 		}
 		olho = olho->prox;
 	}
-	return desempilhanum(pi);
+	while(paux->fim != NULL) {
+		atual = desempilhachar(paux);
+		empilhachar(atual,pp);
+	}
+}
+
+float calcula_posfixa(int valid, t_pilhachar* pp, t_pilhaf* pnum) {
+	t_character* olho = pp->inicio;
+	char atual;
+	float conv,a,b;
+	while(olho != NULL) {
+		atual = olho->dado;
+		if(atual >= '0' && atual <= '9' && valid == 1) {
+			empilhanum(atual-'0',pnum);
+		} else {
+			if(atual == '{' && valid == 0) {
+				conv = 0;
+				olho = olho->prox;
+				atual = olho->dado;
+				conv += atual - '0';
+				olho = olho->prox;
+				atual = olho->dado;
+				while(atual != '}') {
+					conv *= 10;
+					conv += atual - '0';
+					olho = olho->prox;
+					atual = olho->dado;
+				}
+				empilhanum(conv,pnum);
+			} else {
+				if(atual == '+') {
+				b = desempilhanum(pnum);
+				a = desempilhanum(pnum);
+				empilhanum(a+b,pnum);
+			}
+			if(atual == '-') {
+				b = desempilhanum(pnum);
+				a = desempilhanum(pnum);
+				empilhanum(a-b,pnum);
+			}
+			if(atual == '/') {
+				b = desempilhanum(pnum);
+				a = desempilhanum(pnum);
+				empilhanum(a/b,pnum);
+			}
+			if(atual == '*') {
+				b = desempilhanum(pnum);
+				a = desempilhanum(pnum);
+				empilhanum(a*b,pnum);
+			}
+			}
+		}
+		mostra_pilhanum(pnum);
+		olho = olho->prox;
+	}
+	return desempilhanum(pnum);
 }
 /* ---------------------------------------- */
 int main() {
-int valid;
+int valid_parent, valid_oper, valid_digito;
 char digito;
-t_pilhachar* pc = cria_pilhachar();
-t_pilhachar* pv = cria_pilhachar();
+t_pilhachar* pi = cria_pilhachar();
+t_pilhachar* paux = cria_pilhachar();
 t_pilhachar* pp = cria_pilhachar();
-t_pilhaint* pi = cria_pilhaint();
+t_pilhaf* pnum = cria_pilhaint();
 
 while(1) {
 	printf("\e[H\e[2J");
@@ -269,25 +366,32 @@ while(1) {
 	printf("\t\t\t~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 	printf("\n -> Expressão que deseja Calcular : ");
 	while(scanf("%c", &digito)==1 && digito!='\n') {
-		empilhachar(digito,pc);
+		empilhachar(digito,pi);
 	}
 	printf("\n -> Pilha de entrada\t: ");
-	mostra_pilha(pc);
-	valid = valida(pc,pv);
-	if(valid == -1 || valid == 0) {
+	mostra_pilhachar(pi);
+	valid_oper = valida_oper(pi);
+	valid_parent = valida_parent(pi,paux);
+	if(valid_parent == 0 || valid_oper == 0) {
 		printf("   <- EXPRESSÃO INVÁLIDA !\n");
 	} else {
 		printf("   <- EXPRESSÃO VÁLIDA !\n");
-		converte(pc,pp,pv);
+		valid_digito = valida_digito(pi,paux);
+		if(valid_digito == 0) {					/* Expressão com pelo menos um número de 2 ou mais dígitos */
+		converte_maisdig(pi,pp,paux);
+		} else {								/* Expressão com números de 1 dígito */
+		converte_1_dig(pi,pp,paux);
+		}
 		printf("\n -> Pilha polonesa\t: ");
-		mostra_pilha(pp);
-		printf("\n\n -> Expressão posfixa calculada = %.2f\n", calcula_posfixa(pp,pi));
+		mostra_pilhachar(pp);
+		printf("\n");
+		printf("\n\n -> Expressão posfixa calculada = %.2f\n", calcula_posfixa(valid_digito,pp,pnum));
 	}
 	printf("\n aperte ENTER para calcular outra expressão\n");
 	getchar();
-	esvaziachar(pc);
-	if(valid == -1 || valid == 0) {
-		esvaziachar(pv);
+	esvaziachar(pi);
+	if(valid_parent == 0) {
+		esvaziachar(paux);
 	}
 	esvaziachar(pp);
 }
