@@ -16,35 +16,33 @@ typedef struct numero{
 	struct numero* prox;
 }t_numero;
 /* ---- Lista de character ---- */
-typedef struct listachar{
+typedef struct lista_char{
 	t_character* inicio;
 	t_character* fim;
-}t_listac;
+}t_listachar;
 /* ---------------------------- */
 /* ------ Lista de numero ----- */
-typedef struct pilhaf{
+typedef struct lista_float{
 	t_numero* inicio;
 	t_numero* fim;
-}t_listaf;
+}t_listafloat;
 /* ----------------------------- */
 /* --------------- Funções do programa --------------- */
-t_listac* cria_listachar() {
-	t_listac* l = (t_listac*)malloc(sizeof(t_listac));
+t_listachar* cria_listachar() {
+	t_listachar* l = (t_listachar*)malloc(sizeof(t_listachar));
 	l->inicio = NULL;
 	l->fim = NULL;
-	printf("\n -> LISTA DE CHARACTER CRIADA !\n\n");
 	return l;
 }
 
-t_listaf* cria_listafloat() {
-	t_listaf* l = (t_listaf*)malloc(sizeof(t_listaf));
+t_listafloat* cria_listafloat() {
+	t_listafloat* l = (t_listafloat*)malloc(sizeof(t_listafloat));
 	l->inicio = NULL;
 	l->fim = NULL;
-	printf("\n -> PILHA DE INTEIRO CRIADA !\n\n");
 	return l;
 }
 
-void empilha_char(char digito, t_listac* l) {
+void empilha_char(char digito, t_listachar* l) {
 	t_character* novo = (t_character*)malloc(sizeof(t_character));
 	novo->dado = digito;
 	novo->prox = NULL;
@@ -57,7 +55,7 @@ void empilha_char(char digito, t_listac* l) {
 	l->fim = novo;
 }
 
-void empilha_num(float digito, t_listaf* p) {
+void empilha_num(float digito, t_listafloat* p) {
 	t_numero* novo = (t_numero*)malloc(sizeof(t_numero));
 	novo->dado = digito;
 	novo->prox = NULL;
@@ -70,23 +68,15 @@ void empilha_num(float digito, t_listaf* p) {
 	p->fim = novo;
 }
 
-void mostra_listachar(t_listac* l) {
+void mostra_listachar(t_listachar* l) {
 	t_character* aux = l->inicio;
 	while(aux != NULL) {						/* Percorre a lista e mostra cada elemento */
-		printf("%c", aux->dado);
+		if(aux->dado != '{' && aux->dado != '}') printf("%c", aux->dado);
 		aux = aux->prox;
 	}
 }
 
-void mostra_pilhachar(t_listac* p) {
-	t_character* aux = p->inicio;
-	while(aux != NULL) {						/* Percorre a lista e mostra cada elemento */
-		printf("%c", aux->dado);
-		aux = aux->prox;
-	}
-}
-
-char desempilha_char(t_listac* l) {
+char desempilha_char(t_listachar* l) {
 	if(l->inicio == NULL) {
 		return -1; /* PILHA VAZIA */
 	}
@@ -109,7 +99,7 @@ char desempilha_char(t_listac* l) {
 	return removido;
 }
 
-float desempilha_num(t_listaf* p) {
+float desempilha_num(t_listafloat* p) {
 	if(p->inicio == NULL) {
 		return -1; /* PILHA VAZIA */
 	}
@@ -132,13 +122,7 @@ float desempilha_num(t_listaf* p) {
 	return removido;
 }
 
-void esvazia_pilha(t_listac* p) {
-	while(p->fim != NULL) {
-		desempilha_char(p);
-	}
-}
-
-void esvazia_lista(t_listac* l) {
+void esvazia(t_listachar* l) {
 	while(l->fim != NULL) {
 		desempilha_char(l);
 	}
@@ -151,7 +135,7 @@ void insere_0(t_character* antes0, t_character* depois0) {
 	zero->prox = depois0;
 }
 
-int valida_oper(t_listac* l_inf) {
+int valida_oper(t_listachar* l_inf) {
 	t_character* atual = l_inf->inicio;
 	t_character* antes = NULL;
 	while(atual != NULL) {
@@ -182,7 +166,7 @@ int valida_oper(t_listac* l_inf) {
 	return 1;
 }
 
-int valida_parent(t_listac* l_inf, t_listac* p_aux) { /* valida a pilha dos caracteres em relação aos ()	e verifica a existência de números com 2 ou mais dígitos */
+int valida_parent(t_listachar* l_inf, t_listachar* p_aux) { /* valida a pilha dos caracteres em relação aos ()	e verifica a existência de números com 2 ou mais dígitos */
 	t_character* olho = l_inf->inicio;
 	if(olho == NULL) return 0;
 	char c, comp;
@@ -206,7 +190,7 @@ int valida_parent(t_listac* l_inf, t_listac* p_aux) { /* valida a pilha dos cara
 	}
 }
 
-int valida_digito(t_listac* l_inf, t_listac* p_aux) {
+int valida_digito(t_listachar* l_inf, t_listachar* p_aux) {
 	t_character* olho = l_inf->inicio;
 	char atual, proximo;
 	while(olho->prox != NULL) {
@@ -220,7 +204,7 @@ int valida_digito(t_listac* l_inf, t_listac* p_aux) {
 	return 1;
 }
 
-void converte_1_dig(t_listac* l_inf, t_listac* p_pos, t_listac* p_aux) {
+void converte_1_dig(t_listachar* l_inf, t_listachar* p_pos, t_listachar* p_aux) {
 	t_character* olho = l_inf->inicio;
 	char c, comp;
 	while(olho != NULL) {
@@ -255,7 +239,7 @@ void converte_1_dig(t_listac* l_inf, t_listac* p_pos, t_listac* p_aux) {
 	}
 }
 
-void converte_maisdig(t_listac* l_inf, t_listac* p_pos, t_listac* p_aux) {
+void converte_maisdig(t_listachar* l_inf, t_listachar* p_pos, t_listachar* p_aux) {
 	t_character* olho = l_inf->inicio;
 	char atual, proximo, comp;
 	while(olho != NULL) {
@@ -303,7 +287,7 @@ void converte_maisdig(t_listac* l_inf, t_listac* p_pos, t_listac* p_aux) {
 	}
 }
 
-float calcula_posfixa(int valid, t_listac* p_pos, t_listaf* p_num) {
+float calcula_posfixa(int valid, t_listachar* p_pos, t_listafloat* p_num) {
 	t_character* olho = p_pos->inicio;
 	char atual;
 	float conv,a,b;
@@ -357,10 +341,10 @@ float calcula_posfixa(int valid, t_listac* p_pos, t_listaf* p_num) {
 int main() {
 int valid_parent, valid_oper, valid_digito;
 char digito;
-t_listac* l_inf = cria_listachar();
-t_listac* p_aux = cria_listachar();
-t_listac* p_pos = cria_listachar();
-t_listaf* p_num = cria_listafloat();
+t_listachar* l_inf = cria_listachar();
+t_listachar* p_aux = cria_listachar();
+t_listachar* p_pos = cria_listachar();
+t_listafloat* p_num = cria_listafloat();
 while(1) {
 	printf("\e[H\e[2J");
 	printf("\n\n\t\t\t~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -385,17 +369,17 @@ while(1) {
 		converte_1_dig(l_inf,p_pos,p_aux);
 		}
 		printf("\n -> Pilha polonesa\t: ");
-		mostra_pilhachar(p_pos);
+		mostra_listachar(p_pos);
 		printf("\n");
 		printf("\n -> Expressão posfixa calculada = %.2f\n", calcula_posfixa(valid_digito,p_pos,p_num));
 	}
 	printf("\n\n\n\n\t\t aperte ENTER para calcular outra expressão\n");
 	getchar();
-	esvazia_lista(l_inf);
+	esvazia(l_inf);
+	esvazia(p_pos);
 	if(valid_parent == 0) {
-		esvazia_pilha(p_aux);
+		esvazia(p_aux);
 	}
-	esvazia_pilha(p_pos);
 }
 return 0;
 }
