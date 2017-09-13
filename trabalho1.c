@@ -128,11 +128,16 @@ void esvazia(t_listachar* l) {
 	}
 }
 
-void insere_0(t_character* antes0, t_character* depois0) {
+void insere_0(t_character* antes0, t_character* depois0, t_listachar* l_inf) {
 	t_character* zero = (t_character*)malloc(sizeof(t_character));
 	zero->dado = '0';
-	antes0->prox = zero;
-	zero->prox = depois0;
+	if(antes0 != NULL) {
+		antes0->prox = zero;
+		zero->prox = depois0;
+	} else {
+		l_inf->inicio = zero;
+		zero->prox = depois0;
+	}
 }
 
 int valida_oper(t_listachar* l_inf) {
@@ -142,7 +147,7 @@ int valida_oper(t_listachar* l_inf) {
 		if(atual->dado != '0' && atual->dado != '1' && atual->dado != '2' && atual->dado != '3' && atual->dado != '4' && atual->dado != '5' && atual->dado != '6' && atual->dado != '7' && atual->dado != '8' && atual->dado != '9' && atual->dado != '+' && atual->dado != '-' && atual->dado != '*' && atual->dado != '/' && atual->dado != '(' && atual->dado != ')') {
 			return 0;	
 		}
-		if(l_inf->inicio->dado == '*' || l_inf->inicio->dado == '/' || l_inf->inicio->dado == '+' || l_inf->inicio->dado == '-' || l_inf->fim->dado == '+' || l_inf->fim->dado == '-' || l_inf->fim->dado == '*' || l_inf->fim->dado == '/') {
+		if(l_inf->inicio->dado == '*' || l_inf->inicio->dado == '/' || l_inf->fim->dado == '+' || l_inf->fim->dado == '-' || l_inf->fim->dado == '*' || l_inf->fim->dado == '/') {
 			return 0;
 		}
 		if(antes != NULL && antes->dado == '/' && atual->dado == '0') {
@@ -158,7 +163,10 @@ int valida_oper(t_listachar* l_inf) {
 			return 0;
 		}
 		if(antes != NULL && (antes->dado == '(' && (atual->dado == '+' || atual->dado == '-'))) {
-			insere_0(antes,atual);
+			insere_0(antes,atual,l_inf);
+		}
+		if(antes == NULL && (atual->dado == '+' || atual->dado == '-')) {
+			insere_0(antes,atual,l_inf);
 		}
 		antes = atual;
 		atual = atual->prox;
