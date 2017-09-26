@@ -1,0 +1,210 @@
+/*	Rodrigo Naves Rios			16/0144094
+    Mateus Freitas Cavalcanti	16/0137519
+    Estruturas de Dados - Turma C
+  	Trabalho 2 -> Tradutor de código morse */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <time.h>
+
+
+/* ---- Elemento ---- */
+typedef struct elemento{ 
+	char dado;
+	char codigo[8];
+	struct elemento* prox;
+}t_elemento;
+/* ------------------ */
+/* ------- Nó ------- */
+typedef struct No{ 
+	char dado;
+	struct No* dir;
+	struct No* esq;
+}t_No;
+/* ------------------ */
+/* -- Lista morse --- */
+typedef struct lista{
+	t_elemento* inicio;
+	t_elemento* fim;
+}t_lista;
+/* ------------------ */
+/* ----- Árvore ----- */
+typedef struct AB{
+	t_No* raiz;
+}t_AB;
+/* ------------------ */
+/* ---- Funções ----- */
+t_AB* cria_arvore() {
+	t_AB* ab = (t_AB*)malloc(sizeof(t_AB));
+	ab->raiz = (t_No*)malloc(sizeof(t_No));
+	ab->raiz->esq = NULL;
+	ab->raiz->dir = NULL;
+	return ab;
+}
+
+t_lista* cria_lista() {
+	t_lista* l = (t_lista*)malloc(sizeof(t_lista));
+	l->inicio = NULL;
+	l->fim = NULL;
+	return l;
+}
+
+void insere_fim(char digito, char* morse, t_lista* l) {
+	t_elemento* novo = (t_elemento*)malloc(sizeof(t_elemento));
+	novo->dado = digito;
+	strcpy(novo->codigo,morse);
+	novo->prox = NULL;
+	if(l->inicio == NULL) {	
+		l->inicio = novo;
+		l->fim = novo;
+	}
+	else {
+		l->fim->prox = novo;
+	}
+	l->fim = novo;
+}
+
+t_No* anda_caminho(t_No* no, char c) {
+	if(c == '.') {
+	  	if(no->esq == NULL) {	  		
+	  		no->esq = (t_No*)malloc(sizeof(t_No));
+	  	}
+	  	return no->esq;
+	} else {
+		if(no->dir == NULL) {
+			no->dir = (t_No*)malloc(sizeof(t_No));
+		}
+		return no->dir;
+	}
+}
+
+void monta_arvore_morse(t_AB* ab, char* base) {
+char letra, c;
+t_No* no;
+FILE *fp = fopen(base,"r");
+if(fp==0) {
+	printf("\nArquivo inexistente !\n\n -> Pressione <enter> para voltar\n");
+	getchar();
+	return;
+}
+while(fscanf(fp, "%c", &letra) == 1) {
+	no = ab->raiz;
+	fseek(fp, sizeof(letra), SEEK_CUR);
+	while(fscanf(fp ,"%c", &c) == 1 && c != '\n') {
+		no = anda_caminho(no,c);
+	}
+	no->dado = letra;
+}
+fclose(fp);
+return;
+}
+
+void monta_lista_morse(t_lista* l, char* base) {
+char letra, codigo[8], enter;
+FILE *fp = fopen(base,"r");
+if(fp==0) {
+	printf("\nArquivo inexistente !\n\n -> Pressione <enter> para voltar\n");
+	getchar();
+	return;
+}
+while(fscanf(fp, "%c", &letra) == 1) {
+	fseek(fp, sizeof(letra), SEEK_CUR);
+	fscanf(fp ,"%s", codigo);
+	fscanf(fp, "%c", &enter);
+	insere_fim(letra,codigo,l);   /* repetido @ */
+}
+fclose(fp);
+return;
+}
+
+void traduz_arvore(t_AB* ab, char* arquivo) {
+t_No* olho = ab->raiz;
+char c;
+FILE *fp = fopen(arquivo,"r");
+if(fp==0) {
+	printf("\nArquivo inexistente !\n\n -> Pressione <enter> para voltar\n");
+	getchar();
+	return;
+}
+printf(" -> Árvore binária : ");
+while(fscanf(fp, "%c", &c) == 1) {
+	if(c == '.') {
+		olho = olho->esq;
+	}
+	if(c == '-') {
+		olho = olho->dir;
+	}
+	if(c == ' ') {
+		printf("%c", olho->dado);
+		olho = ab->raiz;
+	}
+	if(c == '/') {
+		printf(" ");
+	}
+}
+printf("%c", olho->dado);
+printf("\n\n");
+fclose(fp);
+return;
+}
+
+void traduz_lista(t_lista* l, char* arquivo) {
+t_elemento* olho;
+char codigo[8];
+FILE *fp = fopen(arquivo,"r");
+if(fp==0) {
+	printf("\nArquivo inexistente !\n\n -> Pressione <enter> para voltar\n");
+	getchar();
+	return;
+}
+printf(" -> Lista : ");
+while(fscanf(fp, "%s", codigo) == 1) {
+	olho = l->inicio;
+	while(olho != NULL) {
+		if(strcasecmp(olho->codigo,codigo) == 0) {
+			printf("%c", olho->dado);
+			break;
+		}
+		if(strcasecmp("/",codigo) == 0) {
+			printf(" ");
+			break;
+		}
+		olho = olho->prox;
+	}
+}
+printf("\n\n");
+return;
+}
+/* ------------------ */
+int main() {
+	char base[20], arquivo[20];
+	t_AB* ab = cria_arvore();
+	t_lista* l = cria_lista();
+	printf("\e[H\e[2J");
+	printf("\n\n\t\t\t~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+	printf("\t\t\t[   TRADUTOR DE CÓDIGO MORSE   ]\n");
+	printf("\t\t\t~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+	printf(" -> Digite o nome do arquivo de base (.txt) : ");
+	scanf("%s", base);
+	getchar();
+	monta_arvore_morse(ab,base);
+	monta_lista_morse(l,base);
+	printf(" -> Digite o nome do arquivo que deseja traduzir (.txt) : ");
+	scanf("%s", arquivo);
+	getchar();
+	printf("\n -> Expressão traduzida do arquivo '%s' <-\n\n", arquivo);
+	clock_t inicio_arvore, fim_arvore, inicio_lista, fim_lista;
+	inicio_arvore = clock();
+	traduz_arvore(ab,arquivo);
+	fim_arvore = clock();
+	double tempo_arvore = 1000.0*(fim_arvore - inicio_arvore)/CLOCKS_PER_SEC;
+	inicio_lista = clock();
+	traduz_lista(l,arquivo);
+	fim_lista = clock();
+	double tempo_lista = 1000.0*(fim_lista - inicio_lista)/CLOCKS_PER_SEC;
+	printf( " -> Tempo de execução por árvore : %.3lf ms\n", tempo_arvore);
+	printf( " -> Tempo de execução por lista  : %.3lf ms\n\n", tempo_lista);
+	return 0;
+}
